@@ -19,8 +19,8 @@ interface AppButtonProps {
   loading?: boolean;
   disabled?: boolean;
   variant?: ButtonVariant;
-  style?: StyleProp<ViewStyle>;     // ✅ accepte tableau, undefined, etc.
-  textStyle?: StyleProp<TextStyle>; // ✅ idem pour le texte
+  style?: StyleProp<ViewStyle>;
+  textStyle?: StyleProp<TextStyle>;
 }
 
 export const AppButton: React.FC<AppButtonProps> = ({
@@ -44,11 +44,13 @@ export const AppButton: React.FC<AppButtonProps> = ({
         variant === 'ghost' && styles.ghost,
         isDisabled && styles.disabled,
         pressed && !isDisabled && styles.pressed,
-        style, // ✅ tu peux passer un tableau ici sans que TS gueule
+        style,
       ]}
     >
       {loading ? (
-        <ActivityIndicator color={variant === 'primary' ? '#0f172a' : colors.text} />
+        <ActivityIndicator
+          color={variant === 'primary' ? '#020617' : colors.text}
+        />
       ) : (
         <Text
           style={[
@@ -70,19 +72,32 @@ const styles = StyleSheet.create({
   base: {
     borderRadius: radii.full,
     paddingVertical: spacing.sm + 2,
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: spacing.lg,
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
-    gap: 6,
+    // pas de `gap` ici pour éviter les warnings TS
+    minHeight: 44,
   },
   primary: {
     backgroundColor: colors.primary,
+    borderWidth: 1,
+    borderColor: 'rgba(56,189,248,0.9)',
+    shadowColor: '#38bdf8',
+    shadowOpacity: 0.45,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 10,
   },
   secondary: {
-    backgroundColor: 'transparent',
+    backgroundColor: 'rgba(15,23,42,0.95)',
     borderWidth: 1,
-    borderColor: 'rgba(148,163,184,0.6)',
+    borderColor: 'rgba(148,163,184,0.7)',
+    shadowColor: '#000',
+    shadowOpacity: 0.35,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 6,
   },
   ghost: {
     backgroundColor: 'transparent',
@@ -91,15 +106,16 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   pressed: {
-    transform: [{ scale: 0.98 }],
+    transform: [{ scale: 0.97 }],
     opacity: 0.9,
   },
   textBase: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '700',
+    letterSpacing: 0.3,
   },
   textPrimary: {
-    color: '#0f172a',
+    color: '#020617',
   },
   textSecondary: {
     color: colors.text,

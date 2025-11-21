@@ -1,5 +1,5 @@
 // src/components/AppTextInput.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import {
   TextInput,
   TextInputProps,
@@ -20,14 +20,41 @@ export const AppTextInput: React.FC<Props> = ({
   style,
   ...rest
 }) => {
+  const [focused, setFocused] = useState(false);
+
+  const showError = !!error;
+
   return (
     <View style={styles.wrapper}>
-      {label ? <Text style={styles.label}>{label}</Text> : null}
-      <TextInput
-        style={[styles.input, style]}
-        placeholderTextColor={colors.textSubtle}
-        {...rest}
-      />
+      {label ? (
+        <View style={styles.labelRow}>
+          <Text style={styles.label}>{label}</Text>
+          {showError && <Text style={styles.labelError}>• Erreur</Text>}
+        </View>
+      ) : null}
+
+      <View
+        style={[
+          styles.inputOuter,
+          focused && !showError && styles.inputOuterFocused,
+          showError && styles.inputOuterError,
+        ]}
+      >
+        <TextInput
+          style={[styles.inputInner, style]}
+          placeholderTextColor={colors.textSubtle}
+          onFocus={(e) => {
+            setFocused(true);
+            rest.onFocus && rest.onFocus(e);
+          }}
+          onBlur={(e) => {
+            setFocused(false);
+            rest.onBlur && rest.onBlur(e);
+          }}
+          {...rest}
+        />
+      </View>
+
       {error ? <Text style={styles.error}>{error}</Text> : null}
     </View>
   );
@@ -37,20 +64,51 @@ const styles = StyleSheet.create({
   wrapper: {
     marginBottom: spacing.md,
   },
-  label: {
+  labelRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    justifyContent: 'space-between',
     marginBottom: 4,
+  },
+  label: {
     color: colors.text,
     fontSize: 13,
+    fontWeight: '600',
   },
-  input: {
-    borderRadius: radii.lg,
+  labelError: {
+    fontSize: 11,
+    color: colors.danger,
+  },
+  inputOuter: {
+    borderRadius: radii.full,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: 'rgba(148,163,184,0.55)',
+    backgroundColor: 'rgba(15,23,42,0.96)',
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm + 2,
+    paddingVertical: 2,
+    shadowColor: '#000',
+    shadowOpacity: 0.35,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 8,
+  },
+  inputOuterFocused: {
+    borderColor: colors.primary,
+    shadowColor: '#38bdf8',
+    shadowOpacity: 0.45,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 14 },
+    elevation: 10,
+  },
+  inputOuterError: {
+    borderColor: colors.danger,
+    shadowColor: '#fb7185',
+    shadowOpacity: 0.5,
+  },
+  inputInner: {
+    paddingVertical: spacing.sm,
     color: colors.text,
     fontSize: 14,
-    backgroundColor: '#020617',
   },
   error: {
     marginTop: 4,
