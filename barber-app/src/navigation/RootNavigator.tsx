@@ -11,9 +11,13 @@ import { MyBookingsScreen } from '../screens/MyBookingsScreen';
 import { BarberBookingsScreen } from '../screens/BarberBookingsScreen';
 import { PaymentScreen } from '../screens/PaymentScreen';
 import { ReviewScreen } from '../screens/ReviewScreen';
+import { SplashScreen } from '../screens/SplashScreen';
 import { useAuth } from '../context/AuthContext';
 
 export type RootStackParamList = {
+  // Splash
+  Splash: undefined;
+
   // stack "app"
   Location: undefined;
   BarberDetails: { barberId: string };
@@ -50,16 +54,22 @@ export const RootNavigator: React.FC = () => {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName={user ? 'Location' : 'Auth'}
+        initialRouteName="Splash"
         screenOptions={{
           headerShown: false,
           contentStyle: { backgroundColor: '#020617' },
         }}
       >
+        {/* Splash toujours présent en premier */}
+        <Stack.Screen name="Splash" component={SplashScreen} />
+
         {user ? (
           <>
             <Stack.Screen name="Location" component={LocationScreen} />
-            <Stack.Screen name="BarberDetails" component={BarberDetailsScreen} />
+            <Stack.Screen
+              name="BarberDetails"
+              component={BarberDetailsScreen}
+            />
             <Stack.Screen name="Booking" component={BookingScreen} />
             <Stack.Screen name="MyBookings" component={MyBookingsScreen} />
             <Stack.Screen
