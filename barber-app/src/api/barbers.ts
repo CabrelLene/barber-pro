@@ -7,6 +7,7 @@ export interface Service {
   description?: string | null;
   durationMin: number;
   priceCents: number;
+  imageUrl?: string | null;
 }
 
 export interface BarberReview {

@@ -7,6 +7,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Image, // 👈 nouveau
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
@@ -73,41 +74,80 @@ export const BarberDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
     });
   };
 
+  // 🔥 Service card type "menu" avec image en haut
   const renderServiceItem = ({ item }: { item: Barber['services'][number] }) => {
     const isSelected = item.id === selectedServiceId;
+
+    // on récupère l'image si le backend l'envoie (item.imageUrl)
+    const imageUrl = (item as any).imageUrl as string | undefined;
+
     return (
       <TouchableOpacity
         onPress={() => setSelectedServiceId(item.id)}
-        style={[
-          styles.serviceCard,
-          isSelected && styles.serviceCardSelected,
-        ]}
         activeOpacity={0.9}
+        style={[styles.serviceCard, isSelected && styles.serviceCardSelected]}
       >
-        <View style={styles.serviceHeader}>
-          <View style={{ flex: 1, paddingRight: 8 }}>
-            <Text style={styles.serviceName} numberOfLines={1}>
-              {item.name}
-            </Text>
-            {item.description ? (
-              <Text style={styles.serviceDescription} numberOfLines={2}>
-                {item.description}
+        {/* IMAGE TOP */}
+        <View style={styles.serviceImageWrapper}>
+          {imageUrl ? (
+            <Image
+              source={{ uri: imageUrl }}
+              style={styles.serviceImage}
+              resizeMode="cover"
+            />
+          ) : (
+            <View style={styles.serviceImagePlaceholder}>
+              <Ionicons name="cut-outline" size={20} color="#e5e7eb" />
+              <Text style={styles.serviceImagePlaceholderText}>
+                Coupe & style
               </Text>
-            ) : null}
-          </View>
+            </View>
+          )}
 
-          <View style={styles.servicePriceBlock}>
-            <Text style={styles.servicePrice}>
+          {/* Overlay subtil + badge prix */}
+          <View style={styles.serviceImageOverlay} />
+          <View style={styles.servicePriceTag}>
+            <Text style={styles.servicePriceTagLabel}>À partir de</Text>
+            <Text style={styles.servicePriceTagValue}>
               {(item.priceCents / 100).toFixed(2)} $
             </Text>
+          </View>
+        </View>
+
+        {/* TEXTE BAS */}
+        <View style={styles.serviceInfoBlock}>
+          <Text style={styles.serviceName} numberOfLines={1}>
+            {item.name}
+          </Text>
+
+          {item.description ? (
+            <Text style={styles.serviceDescription} numberOfLines={2}>
+              {item.description}
+            </Text>
+          ) : (
+            <Text style={styles.serviceDescriptionMuted} numberOfLines={2}>
+              Service prêt à être réservé. Description à venir.
+            </Text>
+          )}
+
+          <View style={styles.serviceMetaRow}>
             <View style={styles.serviceTimeBadge}>
-              <Ionicons
-                name="time-outline"
-                size={12}
-                color="#e5e7eb"
-              />
+              <Ionicons name="time-outline" size={12} color="#e5e7eb" />
               <Text style={styles.serviceTimeText}>{item.durationMin} min</Text>
             </View>
+
+            {isSelected && (
+              <View style={styles.serviceSelectedChip}>
+                <Ionicons
+                  name="checkmark-circle"
+                  size={14}
+                  color="#bbf7d0"
+                />
+                <Text style={styles.serviceSelectedText}>
+                  Sélectionné
+                </Text>
+              </View>
+            )}
           </View>
         </View>
       </TouchableOpacity>
@@ -284,7 +324,9 @@ export const BarberDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
                             size={11}
                             color="#facc15"
                           />
-                          <Text style={styles.heroTagText}>Spécialiste coupe & fade</Text>
+                          <Text style={styles.heroTagText}>
+                            Spécialiste coupe & fade
+                          </Text>
                         </View>
                       </View>
                     </View>
@@ -324,24 +366,16 @@ export const BarberDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
 
                   <View style={styles.heroMetaRow}>
                     <View style={styles.heroMetaBadge}>
-                      <Ionicons
-                        name="cash-outline"
-                        size={12}
-                        color="#bbf7d0"
-                      />
+                      <Ionicons name="cash-outline" size={12} color="#bbf7d0" />
                       <Text style={styles.heroMetaText}>
-                        {averagePrice ? `Prix moyen ${averagePrice} $` : 'Tarifs variables'}
+                        {averagePrice
+                          ? `Prix moyen ${averagePrice} $`
+                          : 'Tarifs variables'}
                       </Text>
                     </View>
                     <View style={styles.heroMetaBadge}>
-                      <Ionicons
-                        name="time-outline"
-                        size={12}
-                        color="#bfdbfe"
-                      />
-                      <Text style={styles.heroMetaText}>
-                        Sur réservation
-                      </Text>
+                      <Ionicons name="time-outline" size={12} color="#bfdbfe" />
+                      <Text style={styles.heroMetaText}>Sur réservation</Text>
                     </View>
                   </View>
                 </View>
@@ -694,14 +728,14 @@ const styles = StyleSheet.create({
     color: '#e0f2fe',
   },
 
-  // SERVICES
+  // SERVICES – version "carte de menu"
   serviceCard: {
-    borderRadius: radii.lg,
-    padding: spacing.md,
+    borderRadius: radii.xl,
     marginBottom: spacing.sm,
-    backgroundColor: 'rgba(15,23,42,0.95)',
+    backgroundColor: 'rgba(15,23,42,0.96)',
     borderWidth: 1,
     borderColor: 'rgba(31,41,55,0.9)',
+    overflow: 'hidden',
   },
   serviceCardSelected: {
     borderColor: '#38bdf8',
@@ -712,8 +746,58 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 12 },
     elevation: 8,
   },
-  serviceHeader: {
-    flexDirection: 'row',
+
+  serviceImageWrapper: {
+    height: 140,
+    backgroundColor: '#020617',
+    position: 'relative',
+  },
+  serviceImage: {
+    width: '100%',
+    height: '100%',
+  },
+  serviceImagePlaceholder: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderBottomWidth: 1,
+    borderColor: 'rgba(31,41,55,0.9)',
+  },
+  serviceImagePlaceholderText: {
+    marginTop: 4,
+    color: '#e5e7eb',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  serviceImageOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(15,23,42,0.25)',
+  },
+  servicePriceTag: {
+    position: 'absolute',
+    bottom: 8,
+    right: 10,
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    backgroundColor: 'rgba(15,23,42,0.92)',
+    borderWidth: 1,
+    borderColor: 'rgba(148,163,184,0.7)',
+    alignItems: 'flex-end',
+  },
+  servicePriceTagLabel: {
+    fontSize: 9,
+    color: colors.textSubtle,
+  },
+  servicePriceTagValue: {
+    fontSize: 13,
+    color: colors.text,
+    fontWeight: '700',
+  },
+
+  serviceInfoBlock: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
   },
   serviceName: {
     color: colors.text,
@@ -721,35 +805,54 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   serviceDescription: {
-    marginTop: 2,
+    marginTop: 4,
     color: colors.textMuted,
     fontSize: 12,
   },
-  servicePriceBlock: {
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
+  serviceDescriptionMuted: {
+    marginTop: 4,
+    color: '#6b7280',
+    fontSize: 12,
+    fontStyle: 'italic',
   },
-  servicePrice: {
-    color: '#38bdf8',
-    fontWeight: '700',
-    fontSize: 14,
+  serviceMetaRow: {
+    marginTop: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   serviceTimeBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     borderRadius: 999,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     backgroundColor: '#020617',
     borderWidth: 1,
     borderColor: 'rgba(148,163,184,0.6)',
-    marginTop: 4,
   },
   serviceTimeText: {
     marginLeft: 4,
     fontSize: 11,
     color: '#e5e7eb',
   },
+  serviceSelectedChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    backgroundColor: 'rgba(22,163,74,0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(34,197,94,0.7)',
+  },
+  serviceSelectedText: {
+    marginLeft: 4,
+    fontSize: 11,
+    color: '#bbf7d0',
+    fontWeight: '600',
+  },
+
   bookButton: {
     marginTop: spacing.md,
   },

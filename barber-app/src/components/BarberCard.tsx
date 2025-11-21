@@ -1,6 +1,6 @@
 // src/components/BarberCard.tsx
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Barber } from '../api/barbers';
 import { colors, radii, spacing } from '../theme';
@@ -25,8 +25,7 @@ export const BarberCard: React.FC<Props> = ({ barber }) => {
       : 'Nouveau sur la plateforme';
 
   // Nom du propriétaire fallback
-  const ownerName =
-    barber.user?.fullName ?? 'Barber partenaire';
+  const ownerName = barber.user?.fullName ?? 'Barber partenaire';
 
   // Initiales fallback (shopName > ownerName > BC)
   const initials = (
@@ -35,12 +34,39 @@ export const BarberCard: React.FC<Props> = ({ barber }) => {
     'BC'
   ).toUpperCase();
 
+  // Image principale de coupe : prise sur le premier service si dispo
+  const heroImage = mainService?.imageUrl ?? null;
+
   return (
     <View style={styles.wrapper}>
       <View style={styles.card}>
-        {/* Bande colorée à gauche */}
-        <View style={styles.accentStrip} />
+        {/* Bloc image à gauche */}
+        <View style={styles.imageWrapper}>
+          {heroImage ? (
+            <Image
+              source={{ uri: heroImage }}
+              style={styles.image}
+              resizeMode="cover"
+            />
+          ) : (
+            <View style={styles.imagePlaceholder}>
+              <Text style={styles.imagePlaceholderText}>
+                {initials}
+              </Text>
+            </View>
+          )}
 
+          {mainService && (
+            <View style={styles.pricePill}>
+              <Text style={styles.pricePillLabel}>Dès</Text>
+              <Text style={styles.pricePillValue}>
+                {(mainService.priceCents / 100).toFixed(2)} $
+              </Text>
+            </View>
+          )}
+        </View>
+
+        {/* Contenu à droite */}
         <View style={styles.content}>
           {/* Ligne titre + note */}
           <View style={styles.headerRow}>
@@ -65,43 +91,31 @@ export const BarberCard: React.FC<Props> = ({ barber }) => {
             </View>
           </View>
 
-          {/* Ligne avatar + adresse */}
-          <View style={styles.infoRow}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>{initials}</Text>
-            </View>
-            <View style={styles.infoTextCol}>
-              <View style={styles.addressRow}>
-                <Ionicons
-                  name="location-outline"
-                  size={14}
-                  color="#a5b4fc"
-                  style={{ marginRight: 4 }}
-                />
-                <Text style={styles.address} numberOfLines={1}>
-                  {barber.addressLine1}
-                  {barber.city ? `, ${barber.city}` : ''}{' '}
-                  {barber.postalCode ? `(${barber.postalCode})` : ''}
-                </Text>
-              </View>
-
-              {barber.description ? (
-                <Text
-                  style={styles.description}
-                  numberOfLines={2}
-                >
-                  {barber.description}
-                </Text>
-              ) : (
-                <Text
-                  style={styles.descriptionMuted}
-                  numberOfLines={1}
-                >
-                  Barber enregistré, services prêts à être bookés.
-                </Text>
-              )}
-            </View>
+          {/* Adresse */}
+          <View style={styles.addressRow}>
+            <Ionicons
+              name="location-outline"
+              size={14}
+              color="#a5b4fc"
+              style={{ marginRight: 4 }}
+            />
+            <Text style={styles.address} numberOfLines={1}>
+              {barber.addressLine1}
+              {barber.city ? `, ${barber.city}` : ''}{' '}
+              {barber.postalCode ? `(${barber.postalCode})` : ''}
+            </Text>
           </View>
+
+          {/* Description */}
+          {barber.description ? (
+            <Text style={styles.description} numberOfLines={2}>
+              {barber.description}
+            </Text>
+          ) : (
+            <Text style={styles.descriptionMuted} numberOfLines={1}>
+              Barber vérifié, services réservables en quelques taps.
+            </Text>
+          )}
 
           {/* Service principal */}
           {mainService && (
@@ -115,10 +129,7 @@ export const BarberCard: React.FC<Props> = ({ barber }) => {
                   />
                 </View>
                 <View>
-                  <Text
-                    style={styles.serviceName}
-                    numberOfLines={1}
-                  >
+                  <Text style={styles.serviceName} numberOfLines={1}>
                     {mainService.name}
                   </Text>
                   <Text style={styles.serviceMeta}>
@@ -162,20 +173,68 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 14 },
     elevation: 10,
   },
-  accentStrip: {
-    width: 4,
-    backgroundColor: 'rgba(56,189,248,0.95)',
+
+  // IMAGE
+  imageWrapper: {
+    width: 96,
+    height: 96,
+    borderRadius: radii.lg,
+    overflow: 'hidden',
+    marginLeft: 6,
+    marginVertical: 6,
+    marginRight: spacing.sm,
   },
+  image: {
+    width: '100%',
+    height: '100%',
+  },
+  imagePlaceholder: {
+    flex: 1,
+    backgroundColor: '#020617',
+    borderWidth: 1,
+    borderColor: 'rgba(148,163,184,0.6)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  imagePlaceholderText: {
+    color: colors.primary,
+    fontSize: 20,
+    fontWeight: '800',
+    letterSpacing: 1,
+  },
+  pricePill: {
+    position: 'absolute',
+    bottom: 4,
+    left: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 999,
+    backgroundColor: 'rgba(15,23,42,0.9)',
+    borderWidth: 1,
+    borderColor: 'rgba(148,163,184,0.7)',
+  },
+  pricePillLabel: {
+    fontSize: 9,
+    color: colors.textSubtle,
+  },
+  pricePillValue: {
+    fontSize: 11,
+    color: colors.text,
+    fontWeight: '700',
+  },
+
+  // CONTENU DROITE
   content: {
     flex: 1,
     padding: spacing.md,
+    paddingLeft: 4,
   },
 
   // Header
   headerRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 6,
+    marginBottom: 4,
   },
   titleCol: {
     flex: 1,
@@ -208,40 +267,19 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
   },
 
-  // Info row
-  infoRow: {
-    flexDirection: 'row',
-    marginTop: 4,
-  },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(15,23,42,0.9)',
-    borderWidth: 1,
-    borderColor: 'rgba(56,189,248,0.7)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 10,
-  },
-  avatarText: {
-    color: '#e0f2fe',
-    fontWeight: '800',
-    fontSize: 14,
-    letterSpacing: 0.5,
-  },
-  infoTextCol: {
-    flex: 1,
-  },
+  // Adresse
   addressRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginTop: 2,
   },
   address: {
     fontSize: 12,
     color: '#c7d2fe',
     flexShrink: 1,
   },
+
+  // Description
   description: {
     marginTop: 4,
     fontSize: 12,
@@ -256,7 +294,7 @@ const styles = StyleSheet.create({
 
   // Service pill
   servicePill: {
-    marginTop: 10,
+    marginTop: 8,
     flexDirection: 'row',
     alignItems: 'center',
     borderRadius: 999,

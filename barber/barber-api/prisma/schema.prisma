@@ -60,6 +60,10 @@ model Service {
   description String?
   durationMin Int
   priceCents  Int
+
+  // 🔥 nouvelle colonne pour l’image de la coupe / service
+  imageUrl    String?   
+
   bookings    Booking[]
 }
 
@@ -80,12 +84,9 @@ model Booking {
   scheduledAt DateTime
   status      BookingStatus @default(PENDING)
 
-  totalPriceCents     Int
-
-  // 🔥 AJOUTE CETTE LIGNE :
+  totalPriceCents       Int
   stripePaymentIntentId String?
 }
-
 
 model Review {
   id        String   @id @default(cuid())
